@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Railway Reservation System</title>
+<style>
+:root{--navy:#102a43;--blue:#1769aa;--gold:#f5b942;--bg:#f3f7fb;--ink:#172b4d;--muted:#60738a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#102a43,#1769aa);color:white;padding:25px max(20px,calc((100% - 1120px)/2));}
+nav{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.brand{font-weight:800;font-size:1.2rem}.pill{background:#ffffff20;border:1px solid #ffffff55;border-radius:999px;padding:8px 12px;font-size:.85rem}
+.hero{max-width:1120px;margin:35px auto 20px;padding:0 20px;color:white}.hero h1{font-size:clamp(2rem,5vw,3.2rem);margin:0 0 10px}.hero p{max-width:650px;line-height:1.6;color:#e2edf8}
+main{max-width:1120px;margin:24px auto;padding:0 20px}.notice{background:#fff7df;border:1px solid #f3d17b;border-radius:12px;padding:13px 16px;color:#62480b;line-height:1.5;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.card{grid-column:span 6;background:white;border-radius:16px;padding:22px;box-shadow:0 6px 22px #183b5b0c;border:1px solid #e3ebf3}.wide{grid-column:span 12}.card h2{margin:0 0 6px;font-size:1.25rem}.sub{color:var(--muted);font-size:.92rem;margin:0 0 18px}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}label{font-size:.86rem;font-weight:650;display:block}input,select{width:100%;margin-top:6px;padding:12px;border:1px solid #cbd7e3;border-radius:9px;font:inherit;background:#fff}button{border:0;border-radius:9px;background:var(--blue);color:#fff;padding:12px 16px;font-weight:700;cursor:pointer}button:hover{filter:brightness(.93)}.formbtn{grid-column:1/-1}.secondary{background:#e8f1fa;color:#174e7c}.danger{background:#a92d36}.results{display:grid;gap:10px;margin-top:16px}.train{border:1px solid #dce6ef;border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.train h3{margin:0 0 5px;font-size:1rem}.muted{color:var(--muted);font-size:.9rem}.fare{font-weight:800;color:#125d92}.status{font-size:.82rem;background:#e5f7ed;color:#176b3a;border-radius:99px;padding:5px 9px}.output{margin-top:14px;line-height:1.6;overflow-wrap:anywhere}.empty{color:var(--muted);padding:12px 0}.small{font-size:.85rem;color:var(--muted)}footer{text-align:center;padding:28px 16px;color:var(--muted)}
+@media(max-width:720px){.card{grid-column:span 12}form{grid-template-columns:1fr}.formbtn{grid-column:auto}.hero{margin-top:24px}}
+</style></head>
+<body>
+<header><nav><div class="brand">🚆 RailReserve</div><div class="pill">Railway Reservation System</div></nav>
+<section class="hero"><h1>Your journey starts here.</h1><p>Search sample trains, make a demo reservation, check a PNR, or cancel a demo ticket — all from one simple dashboard.</p></section></header>
+<main><div class="notice"><b>Demo website:</b> This GitHub Pages version uses sample train data stored in this browser. It is not connected to Indian Railways/IRCTC and does not create real tickets or payments. The Java console application remains in the <code>src/</code> folder.</div>
+<div class="grid">
+<section class="card"><h2>🔎 Search trains</h2><p class="sub">Find sample routes by source and destination.</p>
+<form id="searchForm"><label>From<select id="from"><option value="">Any station</option></select></label><label>To<select id="to"><option value="">Any station</option></select></label><button class="formbtn" type="submit">Search trains</button></form><div id="trains" class="results"></div></section>
+<section class="card"><h2>🎫 Book a ticket</h2><p class="sub">Reserve a seat in the demo and receive a PNR.</p>
+<form id="bookForm"><label>Train<select id="trainSelect" required></select></label><label>Travel date<input id="travelDate" type="date" required></label><label>Passenger name<input id="passenger" required maxlength="70" placeholder="Full name"></label><label>Age<input id="age" type="number" min="1" max="120" required placeholder="Age"></label><label>Seats<input id="seats" type="number" min="1" max="6" value="1" required></label><button class="formbtn" type="submit">Book demo ticket</button></form><div id="bookOutput" class="output" aria-live="polite"></div></section>
+<section class="card"><h2>🧾 Check PNR</h2><p class="sub">View a booking using its PNR number.</p><form id="pnrForm"><label style="grid-column:1/-1">PNR number<input id="pnrInput" required placeholder="e.g. RR123456"></label><button class="formbtn" type="submit">Check status</button></form><div id="pnrOutput" class="output" aria-live="polite"></div></section>
+<section class="card"><h2>❌ Cancel ticket</h2><p class="sub">Cancel a demo reservation using its PNR.</p><form id="cancelForm"><label style="grid-column:1/-1">PNR number<input id="cancelInput" required placeholder="Enter PNR"></label><button class="formbtn danger" type="submit">Cancel reservation</button></form><div id="cancelOutput" class="output" aria-live="polite"></div></section>
+<section class="card wide"><h2>📋 My demo bookings</h2><p class="sub">Bookings are saved only in this browser's local storage.</p><div id="bookings" class="results"></div><button id="clearDemo" class="secondary" type="button">Clear demo bookings on this browser</button></section>
+</div></main><footer>Railway Reservation System · Educational project · Demo only</footer>
+<script>
+const seed=[
+{no:12601,name:"Chennai Mail",from:"Chennai",to:"Bengaluru",time:"06:00",seats:100,fare:450},
+{no:12602,name:"Bengaluru Express",from:"Bengaluru",to:"Chennai",time:"15:30",seats:100,fare:450},
+{no:12631,name:"Vaigai Express",from:"Chennai",to:"Madurai",time:"07:15",seats:120,fare:380},
+{no:12632,name:"Pandian Express",from:"Madurai",to:"Chennai",time:"21:00",seats:120,fare:380},
+{no:16723,name:"Anantapuri Express",from:"Chennai",to:"Trivandrum",time:"19:45",seats:150,fare:620},
+{no:12007,name:"Shatabdi Express",from:"Chennai",to:"Mysuru",time:"06:00",seats:80,fare:1050},
+{no:22637,name:"West Coast Express",from:"Chennai",to:"Mangaluru",time:"13:10",seats:140,fare:540}
+];
+const $=id=>document.getElementById(id);const money=n=>"₹"+Number(n).toLocaleString("en-IN");
+const read=()=>{try{return JSON.parse(localStorage.getItem("railreserve_bookings")||"[]")}catch{return []}};
+const save=b=>{localStorage.setItem("railreserve_bookings",JSON.stringify(b));renderBookings()};
+function fillSelect(id,items,first){const el=$(id);el.innerHTML=first?`<option value="">${first}</option>`:"";items.forEach(x=>{const o=document.createElement("option");o.value=x.value;o.textContent=x.label;el.append(o)})}
+const stations=[...new Set(seed.flatMap(t=>[t.from,t.to]))].sort();
+fillSelect("from",stations.map(s=>({value:s,label:s})),"Any station");fillSelect("to",stations.map(s=>({value:s,label:s})),"Any station");
+fillSelect("trainSelect",seed.map(t=>({value:t.no,label:`${t.no} · ${t.name} (${t.from} → ${t.to}) · ${money(t.fare)}`})));
+$("travelDate").min=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+function trainCard(t){return `<div class="train"><div><h3>${t.no} · ${t.name}</h3><div>${t.from} → ${t.to}</div><div class="muted">Departure ${t.time} · ${t.seats} sample seats</div></div><div class="fare">${money(t.fare)} <span class="muted">/ seat</span></div></div>`}
+function search(){const a=$("from").value,b=$("to").value;const list=seed.filter(t=>(!a||t.from===a)&&(!b||t.to===b));$("trains").innerHTML=list.length?list.map(trainCard).join(""):'<div class="empty">No sample trains found for this route.</div>'}
+$("searchForm").addEventListener("submit",e=>{e.preventDefault();search()});search();
+$("bookForm").addEventListener("submit",e=>{e.preventDefault();const t=seed.find(x=>x.no===Number($("trainSelect").value)),date=$("travelDate").value,name=$("passenger").value.trim(),age=Number($("age").value),seats=Number($("seats").value);if(!t||!name||!date||date<$("travelDate").min||age<1||age>120||seats<1||seats>6){$("bookOutput").textContent="Please check all details. Choose a today/future date and 1–6 seats.";return}const pnr="RR"+Math.random().toString(36).slice(2,8).toUpperCase();const b=read();b.unshift({pnr,train:t.no,name,age,seats,date,amount:t.fare*seats,status:"CONFIRMED"});save(b);$("bookOutput").innerHTML=`<b>Demo booking confirmed!</b><br>PNR: <b>${pnr}</b><br>${t.name} · ${date}<br>Total: ${money(t.fare*seats)}<br><span class="small">This is not a real railway ticket.</span>`;$("pnrInput").value=pnr;$("passenger").value="";});
+function showPNR(pnr,target){const b=read().find(x=>x.pnr.toUpperCase()===pnr.trim().toUpperCase());$(target).innerHTML=b?`<b>${b.pnr}</b> — <span class="status">${b.status}</span><br>Passenger: ${escapeHtml(b.name)}<br>Train: ${b.train}<br>Travel date: ${b.date}<br>Seats: ${b.seats}<br>Amount: ${money(b.amount)}`:"No booking found for that PNR in this browser."}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("pnrForm").addEventListener("submit",e=>{e.preventDefault();showPNR($("pnrInput").value,"pnrOutput")});
+$("cancelForm").addEventListener("submit",e=>{e.preventDefault();const p=$("cancelInput").value.trim().toUpperCase(),b=read(),i=b.findIndex(x=>x.pnr.toUpperCase()===p);if(i<0){$("cancelOutput").textContent="Booking not found in this browser.";return}if(b[i].status==="CANCELLED"){$("cancelOutput").textContent="This demo booking is already cancelled.";return}b[i].status="CANCELLED";save(b);$("cancelOutput").innerHTML=`Demo booking <b>${p}</b> cancelled. No real ticket or refund was processed.`});
+function renderBookings(){const b=read();$("bookings").innerHTML=b.length?b.map(x=>`<div class="train"><div><h3>${x.pnr} · ${escapeHtml(x.name)}</h3><div>${x.train} · ${x.date} · ${x.seats} seat(s)</div><div class="muted">${money(x.amount)}</div></div><span class="${x.status==="CONFIRMED"?"status":"pill"}">${x.status}</span></div>`).join(""):'<div class="empty">No demo bookings yet. Create one using the form above.</div>'}
+$("clearDemo").addEventListener("click",()=>{if(confirm("Clear all demo bookings saved in this browser?")){localStorage.removeItem("railreserve_bookings");renderBookings();$("bookOutput").textContent="";$("pnrOutput").textContent="";$("cancelOutput").textContent=""}});renderBookings();
+</script></body></html>
